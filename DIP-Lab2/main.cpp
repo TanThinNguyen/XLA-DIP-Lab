@@ -3,17 +3,25 @@
 
 #include <iostream>
 #include "opencv2/opencv.hpp"
-//using namespace cv;
+#include "GeometricTransformer.h"
+using namespace std;
+using namespace cv;
 
 int main()
 {
-	cv::Mat src = cv::imread("girl.jpg");
-	cv::namedWindow("Source Image");
-	cv::imshow("Source Image", src);
-
+	Mat src = imread("girl.jpg");
+	namedWindow("Source Image");
+	imshow("Source Image", src);
 	
-	cv::waitKey(0);
+	Mat dst;
+	GeometricTransformer* geoTrans = new GeometricTransformer();
+	PixelInterpolate* interpolator = new NearestNeighborInterpolate();
+	geoTrans->Scale(src, dst, 1.5, 1.5, interpolator);
 
+	namedWindow("Dest Image");
+	imshow("Dest Image", dst);
+
+	cv::waitKey(0);
 	return 0;
 }
 
