@@ -178,14 +178,30 @@ int GeometricTransformer::RotateKeepImage(const Mat& srcImage, Mat& dstImage, fl
 	int nChannel = srcImage.channels();
 
 	// Tính toán dstRow, dstCol
+	float w = float(srcCol);
+	float h = float(srcRow);
+	float diag = sqrt(w * w + h * h);
 
+	float alpha0 = atan2(h, w);
+	float new_w = max(fabs(diag * cos(-alpha0 + angle)),
+					fabs(diag * cos(alpha0 + angle)));
+	float new_h = max(fabs(diag * sin(-alpha0 + angle)),
+					fabs(diag * sin(alpha0 + angle)));
 
+	int dstRow = int(ceil(new_h));
+	int dstCol = int(ceil(new_w));
 
 	// Khởi tạo dstImage với kích thước thích hợp
+	if (nChannel == 1)
+		dstImage = Mat(dstRow, dstCol, CV_8UC1, Scalar(0));
+	else if (nChannel == 3)
+		dstImage = Mat(dstRow, dstCol, CV_8UC3, Scalar(0));
 
 	// Tìm phép biến đổi affine ngược
 	AffineTransform* affineTrans = new AffineTransform();
+	affineTrans->Translate(-new_w / 2, -new_h / 2);
 	affineTrans->Rotate(-angle);
+	affineTrans->Translate(srcCol / 2.0f, srcRow / 2.0f);
 
 	// Thực hiện biến đổi
 	int ret = this->Transform(srcImage, dstImage, affineTrans, interpolator);
@@ -313,12 +329,41 @@ int GeometricTransformer::Flip(const Mat& srcImage, Mat& dstImage, bool directio
 				// Duyệt từng kênh màu, tìm màu nội suy
 				for (int k = 0; k < nChannels; k++)
 				{
-					uchar c;
+					uchar color = interpolator->Interpolate(tx, ty, pSrcData + k, srcWidthStep, nChannels);
+					int index = y * dstWidthStep + x * nChannels + k;
+					pDstData[index] = color;
 				}
 			}
 		}
 	}
-	return 0;
+	//Trục đứng
+	else {
+		//Lấy giá trị x ở giữa ảnh
+		float axis_x = width / 2.0;
+		for (int y = 0; y < height; y++)
+		{
+			for (int x = 0; x < width; x++)
+			{
+				//Giữ nguyên y
+				float tx, ty = y;
+				//Nếu x > axis_x thì y nằm ở bên phải trục, ngược lại y nằm bên trái trục
+				if (x >= axis_x)
+					tx = x - axis_x;
+				else
+					tx = x + axis_x;
+
+				// Duyệt từng kênh màu, tìm màu nội suy
+				for (int k = 0; k < nChannels; k++)
+				{
+					uchar color = interpolator->Interpolate(tx, ty, pSrcData + k, srcWidthStep, nChannels);
+					int index = y * dstWidthStep + x * nChannels + k;
+					pDstData[index] = color;
+				}
+			}
+		}
+	}
+
+	return 1;
 }
 
 GeometricTransformer::GeometricTransformer()

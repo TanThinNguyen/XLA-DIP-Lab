@@ -10,7 +10,7 @@ using namespace cv;
 
 int main()
 {
-	Mat src = imread("logo.jpg");
+	Mat src = imread("girl.jpg");
 	namedWindow("Source Image");
 	imshow("Source Image", src);
 
@@ -27,8 +27,8 @@ int main()
 	//ret = transformer->Scale(src, dst, 0.4, 0.4, interpolator);
 	// Thay đổi kích thước
 	//ret = transformer->Resize(src, dst, 250, 100, interpolator);
-	ret = transformer->RotateUnkeepImage(src, dst, -20*PI/180, interpolator);
-	//ret = transformer->RotateKeepImage(src, dst, -15 * PI / 180, interpolator);
+	//ret = transformer->RotateUnkeepImage(src, dst, 45 * PI / 180, interpolator);
+	ret = transformer->RotateKeepImage(src, dst, -200 * PI / 180, interpolator);
 
 	if (ret)
 	{
