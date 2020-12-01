@@ -1,6 +1,11 @@
 ﻿#pragma once
 #include "opencv2/opencv.hpp"
+#include <iostream>
+using namespace std;
 using namespace cv;
+
+#define PI  3.14159265358979f
+
 /*
  Lớp base dùng để nội suy màu của 1 pixel
 */
@@ -54,10 +59,10 @@ class AffineTransform
 public:
 	void Translate(float dx, float dy);// xây dựng matrix transform cho phép tịnh tiến theo vector (dx,dy)
 	void Rotate(float angle);//xây dựng matrix transform cho phép xoay 1 góc angle
-	void Scale(float sx, float sy);//xây dựng matrix transform cho phép tỉ lệ theo hệ số 
+	void Scale(float sx, float sy);//xây dựng matrix transform cho phép tỉ lệ theo hệ số 		
 	void Symmetry(int direction, float axis);//xây dựng maxtrix transform với direction = 1 là đối xứng qua trục nganh, = 0 là qua trục đứng, axis là tọa độ trục
-	void TransformPoint(float &x, float &y);//transform 1 điểm (x,y) theo matrix transform đã có
-	
+	void TransformPoint(float& x, float& y);//transform 1 điểm (x,y) theo matrix transform đã có
+
 	AffineTransform();
 	~AffineTransform();
 };
@@ -81,9 +86,9 @@ public:
 	 - 1: Nếu biến đổi thành công
 	*/
 	int Transform(
-		const Mat &beforeImage, 
-		Mat &afterImage, 
-		AffineTransform* transformer, 
+		const Mat& beforeImage,
+		Mat& afterImage,
+		AffineTransform* transformer,
 		PixelInterpolate* interpolator);
 
 	/*
@@ -98,7 +103,7 @@ public:
 	 - 1: Nếu biến đổi thành công
 	*/
 	int RotateKeepImage(
-		const Mat &srcImage, Mat &dstImage, float angle, PixelInterpolate* interpolator);
+		const Mat& srcImage, Mat& dstImage, float angle, PixelInterpolate* interpolator);
 
 	/*
 	Hàm xoay không bảo toàn nội dung ảnh theo góc xoay cho trước
@@ -112,26 +117,26 @@ public:
 	 - 1: Nếu biến đổi thành công
 	*/
 	int RotateUnkeepImage(
-		const Mat &srcImage, Mat &dstImage, float angle, PixelInterpolate* interpolator);
+		const Mat& srcImage, Mat& dstImage, float angle, PixelInterpolate* interpolator);
 
 	/*
 	Hàm phóng to, thu nhỏ ảnh theo tỉ lệ cho trước
 	Tham số
 	- srcImage: ảnh input
-	- dstImage: ảnh sau khi thực hiện phép xoay	
-	- sx, sy: tỉ lệ phóng to, thu nhỏ ảnh	
+	- dstImage: ảnh sau khi thực hiện phép xoay
+	- sx, sy: tỉ lệ phóng to, thu nhỏ ảnh
 	- interpolator: biến chỉ định phương pháp nội suy màu
 	Trả về:
 	 - 0: Nếu ảnh input ko tồn tại hay ko thực hiện được phép biến đổi
 	 - 1: Nếu biến đổi thành công
 	*/
 	int Scale(
-		const Mat &srcImage, 
-		Mat &dstImage, 
-		float sx, float sy, 
+		const Mat& srcImage,
+		Mat& dstImage,
+		float sx, float sy,
 		PixelInterpolate* interpolator);
-		
-	
+
+
 	/*
 	Hàm thay đổi kích thước ảnh
 	Tham số
@@ -144,9 +149,9 @@ public:
 	 - 1: Nếu biến đổi thành công
 	*/
 	int Resize(
-		const Mat &srcImage, 
-		Mat &dstImage, 
-		int newWidth, int newHeight, 
+		const Mat& srcImage,
+		Mat& dstImage,
+		int newWidth, int newHeight,
 		PixelInterpolate* interpolator);
 
 	/*
@@ -161,8 +166,8 @@ public:
 	 - 1: Nếu biến đổi thành công
 	*/
 	int Flip(
-		const Mat &srcImage, 
-		Mat &dstImage, 
+		const Mat& srcImage,
+		Mat& dstImage,
 		bool direction,
 		PixelInterpolate* interpolator);
 
