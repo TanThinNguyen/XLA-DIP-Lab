@@ -18,8 +18,8 @@ uchar BilinearInterpolate::Interpolate(float tx, float ty, uchar* pSrc, int srcW
 	}
 
 	// Tìm cận dưới l,k tương ứng của tx, ty
-	int l = floor(tx);
-	int k = floor(ty);
+	int l = int(floor(tx));
+	int k = int(floor(ty));
 
 	float a = tx - l;
 	float b = ty - k;
@@ -95,6 +95,28 @@ void AffineTransform::Scale(float sx, float sy)
 	this->_matrixTransform = matrixDot(matrix, this->_matrixTransform);
 }
 
+void AffineTransform::Symmetry(int direction, float axis)
+{
+	Mat matrix = Mat::zeros(3, 3, CV_32FC1);
+
+	//Đối xứng qua trục ngang: x = x, y = 2*axis - y
+	if (direction == 1) {
+		matrix.at<float>(0, 0) = 1;
+		matrix.at<float>(1, 1) = -1;
+		matrix.at<float>(1, 2) = 2 * axis;
+		matrix.at<float>(2, 2) = 1;
+	}
+	//Đối xứng qua trục đứng: x = 2*axis - x, y = y
+	else {
+		matrix.at<float>(0, 0) = -1;
+		matrix.at<float>(0, 2) = 2 * axis;
+		matrix.at<float>(1, 1) = 1;
+		matrix.at<float>(2, 2) = 1;
+	}
+
+	this->_matrixTransform = matrixDot(matrix, this->_matrixTransform);
+}
+
 void AffineTransform::TransformPoint(float& x, float& y)
 {
 	// Nhân vector [x, y, 1] với _matrixTransform
@@ -151,7 +173,7 @@ int GeometricTransformer::Transform(const Mat& beforeImage, Mat& afterImage, Aff
 			for (int k = 0; k < nChannel; k++)
 			{
 				uchar color = 0;
-				if (tx >= 0 && tx <= srcCol && ty >= 0 && ty <= srcRow)
+				if (tx >= 0 && tx < srcCol - 1 && ty >= 0 && ty < srcRow - 1)
 				{
 					color = interpolator->Interpolate(tx, ty, pSrcData + k, srcWidthStep, nChannel);
 				}
@@ -258,7 +280,10 @@ int GeometricTransformer::Scale(const Mat& srcImage, Mat& dstImage, float sx, fl
 	int dstCol = int(ceil(srcCol * sx));
 
 	// Khởi tạo dstImage với kích thước thích hợp
-	dstImage = Mat(dstRow, dstCol, CV_8UC3, Scalar(0));
+	if (nChannel == 1)
+		dstImage = Mat(dstRow, dstCol, CV_8UC1, Scalar(0));
+	else if (nChannel == 3)
+		dstImage = Mat(dstRow, dstCol, CV_8UC3, Scalar(0));
 
 	// Tìm phép biến đổi affine ngược
 	AffineTransform* affineTrans = new AffineTransform();
@@ -302,66 +327,17 @@ int GeometricTransformer::Flip(const Mat& srcImage, Mat& dstImage, bool directio
 	//Khởi tạo dstImage bằng với chiều của srcImage
 	dstImage = Mat(height, width, CV_8UC3, Scalar(0));
 
-	//Lấy widthStep của srcImage và dstImage
-	int dstWidthStep = dstImage.step1();
-	int srcWidthStep = srcImage.step1();
+	// Tìm phép biến đổi affine ngược
+	AffineTransform* affineTrans = new AffineTransform();
 
-	uchar* pSrcData = srcImage.data;
-	uchar* pDstData = dstImage.data;
+	//Truyền tọa độ trục ngang là height/2, trục dọc là width/2
+	if (direction == 1)
+		affineTrans->Symmetry(direction, height / 2.0);
+	else
+		affineTrans->Symmetry(direction, width / 2.0);
 
-	//Trục ngang
-	if (direction == 1) {
-		//Lấy giá trị y ở giữa ảnh
-		float axis_y = height / 2.0;
-
-		for (int y = 0; y < height; y++)
-		{
-			for (int x = 0; x < width; x++)
-			{
-				//Giữ nguyên x
-				float tx = x, ty;
-				//Nếu y > axis_y thì y nằm ở trên trục, ngược lại y nằm dưới
-				if (y >= axis_y)
-					ty = y - axis_y;
-				else
-					ty = y + axis_y;
-
-				// Duyệt từng kênh màu, tìm màu nội suy
-				for (int k = 0; k < nChannels; k++)
-				{
-					uchar color = interpolator->Interpolate(tx, ty, pSrcData + k, srcWidthStep, nChannels);
-					int index = y * dstWidthStep + x * nChannels + k;
-					pDstData[index] = color;
-				}
-			}
-		}
-	}
-	//Trục đứng
-	else {
-		//Lấy giá trị x ở giữa ảnh
-		float axis_x = width / 2.0;
-		for (int y = 0; y < height; y++)
-		{
-			for (int x = 0; x < width; x++)
-			{
-				//Giữ nguyên y
-				float tx, ty = y;
-				//Nếu x > axis_x thì y nằm ở bên phải trục, ngược lại y nằm bên trái trục
-				if (x >= axis_x)
-					tx = x - axis_x;
-				else
-					tx = x + axis_x;
-
-				// Duyệt từng kênh màu, tìm màu nội suy
-				for (int k = 0; k < nChannels; k++)
-				{
-					uchar color = interpolator->Interpolate(tx, ty, pSrcData + k, srcWidthStep, nChannels);
-					int index = y * dstWidthStep + x * nChannels + k;
-					pDstData[index] = color;
-				}
-			}
-		}
-	}
+	// Thực hiện biến đổi
+	this->Transform(srcImage, dstImage, affineTrans, interpolator);
 
 	return 1;
 }

@@ -54,7 +54,8 @@ class AffineTransform
 public:
 	void Translate(float dx, float dy);// xây dựng matrix transform cho phép tịnh tiến theo vector (dx,dy)
 	void Rotate(float angle);//xây dựng matrix transform cho phép xoay 1 góc angle
-	void Scale(float sx, float sy);//xây dựng matrix transform cho phép tỉ lệ theo hệ số 		
+	void Scale(float sx, float sy);//xây dựng matrix transform cho phép tỉ lệ theo hệ số 
+	void Symmetry(int direction, float axis);//xây dựng maxtrix transform với direction = 1 là đối xứng qua trục nganh, = 0 là qua trục đứng, axis là tọa độ trục
 	void TransformPoint(float &x, float &y);//transform 1 điểm (x,y) theo matrix transform đã có
 	
 	AffineTransform();

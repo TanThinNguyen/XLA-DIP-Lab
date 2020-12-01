@@ -10,6 +10,8 @@ using namespace cv;
 
 int main()
 {
+	//Mat src = imread("flower.png");
+	//Mat src = imread("scene.jpg");
 	Mat src = imread("girl.jpg");
 	namedWindow("Source Image");
 	imshow("Source Image", src);
@@ -24,11 +26,17 @@ int main()
 
 	int ret = 0;
 	// Phóng to, thu nhỏ
-	//ret = transformer->Scale(src, dst, 0.4, 0.4, interpolator);
+	//ret = transformer->Scale(src, dst, 0.3, 0.3, interpolator);
+	//ret = transformer->Scale(src, dst, 1.1, 1.1, interpolator);
+
 	// Thay đổi kích thước
-	//ret = transformer->Resize(src, dst, 250, 100, interpolator);
-	//ret = transformer->RotateUnkeepImage(src, dst, 45 * PI / 180, interpolator);
-	ret = transformer->RotateKeepImage(src, dst, -200 * PI / 180, interpolator);
+	//ret = transformer->Resize(src, dst, 250, 200, interpolator);
+	//ret = transformer->Resize(src, dst, 650, 500, interpolator);
+
+	//src = dst;
+	// Xoay ảnh quanh tâm
+	//ret = transformer->RotateUnkeepImage(src, dst, 35 * PI / 180, interpolator);
+	ret = transformer->RotateKeepImage(src, dst, -60 * PI / 180, interpolator);
 
 	if (ret)
 	{
